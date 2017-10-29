@@ -1,0 +1,12 @@
+<!doctype html>
+<title>Diagrams!</title>
+<div class=page>
+  <h1>Diagrams!</h1>
+  <ul>
+  {% for profile_name, profile in profiles.items() %}
+    <li>
+    <a href="/{{ profile_name }}">{{profile_name}}</a>: {{ profile.get("description", "") }}
+    </li>
+  {% endfor %}
+  </ul>
+</div>

@@ -1,0 +1,5 @@
+networkx==2.0
+pyparsing==2.2.0
+pyyaml
+flask==0.12.2
+sh==1.12.8

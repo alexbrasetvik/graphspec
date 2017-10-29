@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style type="text/css">
+        {{ css | safe }}
+    </style>
+    <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+    <script>
+        var graph = {{ graph_data | tojson | safe }};
+
+        {{ js | safe }}
+    </script>
+
+</head>
+<body>
+<div class="help">
+    <p>Click a node to highlight descendants, or Alt-click for ancestors.</p>
+    <p>Shift-click/Shift-Alt-click to add more highlights. Reload to reset :)</p>
+</div>
+<div class="hover">
+    <h2 class="path"></h2>
+    <div class="description"></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/8.4.0/markdown-it.js" integrity="sha256-INFFM9xyb5iXlpXZxjfp3o17nirhfrHavxw5WlqXQSA=" crossorigin="anonymous"></script>
+{{ svg | safe }}
+</body>
+</html>

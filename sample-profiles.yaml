@@ -1,0 +1,13 @@
+# Invoke me with ./graphspec.py --serve --profile sample-profiles.yaml
+fromShell:
+    description: "This runs a shell command to get the data"
+    shell: |
+      rg --no-filename -o -e '([^ ]+) -{2,}> ([^ ,]+) *:: *.*' -e '\.\.(subgraph|attr|allPaths|ancestors|descendants):.*' -e '([^ ]+) --(\[[^\]]+\]--)?> ([^ ,]+)' *md
+hello:
+    description: Hello World
+    shell: |
+      echo 'Hello --> World'
+docs:
+    description: "This invokes a sensible ripgrep on the specified paths"
+    paths:
+        - README.md
