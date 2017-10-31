@@ -158,10 +158,10 @@ class ParserTests(unittest.TestCase):
 
 class Graph(object):
 
-    def __init__(self, enabled_conditions=None):
+    def __init__(self, include_everything=False):
         self.g = networkx.DiGraph()
         self.subgraphs = networkx.DiGraph()
-        self.enabled_conditions = enabled_conditions or set()
+        self.include_everything = include_everything
         self.graph_attrs = list()
         self.node_attrs = collections.defaultdict(dict)
         self.edge_attrs = collections.defaultdict(lambda: collections.defaultdict(list))
@@ -226,16 +226,19 @@ class Graph(object):
         self.g.node[subgraph_id].update(**kwargs)
 
     @classmethod
-    def from_lines(cls, lines):
-        graph = Graph()
+    def from_lines(cls, lines, **kw):
+        graph = Graph(**kw)
         for line in lines:
             for statement in search_for_statements(line):
                 graph.include_statement(statement)
         return graph
 
     @classmethod
-    def from_string(cls, string):
-        return cls.from_lines(string.split('\n'))
+    def from_string(cls, string, **kw):
+        return cls.from_lines(string.split('\n'), **kw)
+
+    def render_node(self, node_id):
+        return '"{0}" [id="{0}"; {1}];'.format(node_id, self.node_attrs.get(node_id, ""))
 
     def render_dot(self):
         dot = ['digraph G {']
@@ -299,10 +302,17 @@ class Graph(object):
             if node_id in already_visited:
                 # Node has been part of a subgraph
                 continue
-            dot.append('"{0}" [id="{0}"; {1}];'.format(node_id, self.node_attrs.get(node_id, "")))
+            if self.should_include_node(node_id):
+                dot.append(self.render_node(node_id))
 
         dot.append('}')
         return '\n'.join(dot)
+
+    def should_include_node(self, node_id):
+        # Only render a node if it has at least one edge going in or out that's _not_ a subgraph relation
+        return self.include_everything or self.g.out_degree(node_id) or any(
+            not data.get('is_subgraph_relation', False) for _, _, data in self.g.in_edges(node_id, data=True)
+        )
 
     def render_subgraph(self, root, already_visited):
         # Subgraph ids must be prefixed with "cluster_" to be clustered in the renderers,
@@ -322,7 +332,8 @@ class Graph(object):
                 subsub = self.render_subgraph(child, already_visited)
                 dot.append(subsub)
             else:
-                dot.append('"{0}" [id="{0}"; {1}];'.format(child, self.node_attrs.get(child, "")))
+                if self.should_include_node(child):
+                    dot.append(self.render_node(child))
             already_visited.add(child)
 
         dot.append('}')
@@ -492,10 +503,12 @@ def profile(profile_name):
         return 'no such profile', 404
     lines = get_lines_from_profile(profile)
 
-    graph = Graph.from_lines(lines)
+    include_everything = flask.request.args.get("include_everything", profile.get("include_everything", False))
+    graph = Graph.from_lines(lines, include_everything=include_everything)
     graph_data = graph.get_graph_data()
     apply_transitive_reduction = profile.get("apply_transitive_reduction", flask.request.args.get("apply_transitive_reduction", False))
     layout_engine = flask.request.args.get("layout_engine", profile.get("layout_engine", "dot"))
+
     svg = make_graph_from_dot(graph.render_dot().encode("utf8"), layout_engine, "svg", apply_transitive_reduction).decode("utf8")
 
     return make_html(svg, graph_data)
@@ -515,6 +528,7 @@ def main():
     parser.add_argument("--host", help="Host to bind to, if serving", action="store", default="127.0.0.1")
     parser.add_argument("--profile", help="Profiles to serve, if serving", action="store")
     parser.add_argument("--type", help="Graph type: dot, neato, or fdp", action="store", default="dot")
+    parser.add_argument("--include-everything", help="Include nodes with no in- or outputs?", action="store_true")
 
     args = parser.parse_args()
     
@@ -539,7 +553,7 @@ def main():
         return
 
     # We'll be wanting a graph
-    graph = Graph.from_string(sys.stdin.read().decode("utf8"))
+    graph = Graph.from_string(sys.stdin.read().decode("utf8"), include_everything=args.include_everything)
     dot = graph.render_dot().encode("utf8")
     graph_data = graph.get_graph_data()
 
