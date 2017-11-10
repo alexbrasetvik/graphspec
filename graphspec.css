@@ -1,3 +1,23 @@
+a, a:visited {
+    color: blue !important;
+}
+
+.hamburger {
+    opacity: .3;
+}
+
+.profiles .hamburger {
+    opacity: .1;
+}
+
+.hide {
+    display: none;
+}
+
+li {
+    list-style: none;
+}
+
 .noselect {
     -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */

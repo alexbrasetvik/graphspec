@@ -26,6 +26,44 @@
     <p>Click a node to highlight descendants, or Alt-click for ancestors.</p>
     <p>Shift-click/Shift-Alt-click to add more highlights. Reload to reset :)</p>
 </div>
+{% if profiles %}
+<div class="toggle-profiles">
+    <img class="hamburger" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' x='0px' y='0px' width='30px' height='30px' viewBox='0 0 30 30' enable-background='new 0 0 30 30' xml:space='preserve'><rect width='30' height='6'/><rect y='24' width='30' height='6'/><rect y='12' width='30' height='6'/></svg>" />
+</div>
+<div class="profiles hide">
+    <img class="hamburger" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' x='0px' y='0px' width='30px' height='30px' viewBox='0 0 30 30' enable-background='new 0 0 30 30' xml:space='preserve'><rect width='30' height='6'/><rect y='24' width='30' height='6'/><rect y='12' width='30' height='6'/></svg>" />
+    <ul>
+        <li>
+        {% if "apply_transitive_reduction=true" in request.query_string %}
+        <a href="?{{ request.query_string | replace("apply_transitive_reduction=true", "") }}">Show all edges</a>
+        {% else %}
+        <a href="{{ ("?" ~ request.query_string ~ "&apply_transitive_reduction=true") | replace("?&", "?") }}">Remove redundant edges</a>
+        {% endif %}
+        </li>
+        <li>
+        {% if "include_everything=true" in request.query_string %}
+        <a href="?{{ request.query_string | replace("include_everything=true", "") | replace("?&", "?") }}">Hide unconnected nodes</a>
+        {% else %}
+        <a href="{{ ("?" ~ request.query_string ~ "&include_everything=true") | replace("?&", "?") }}">Show all nodes</a>
+        {% endif %}
+        </li>
+
+        <li>Details:</li>
+        <li><ul>
+        {% for profile_name, profile in profiles.items() %}
+        <li>
+            {% if profile_name in active_profiles %}
+            <input type="checkbox" checked disabled />
+            <a href="/{{ exclude(active_profiles, profile_name) | join(",") }}?{{ request.query_string }}">{{profile_name}}</a>
+            {% else %}
+            <input type="checkbox" disabled />
+            <a href="/{{ (active_profiles + [profile_name]) | join(",") }}?{{ request.query_string}}">{{profile_name}}</a>
+            {% endif %}: {{ profile.get("description", "") }}
+        </li>
+        {% endfor %}
+        </ul></li></ul>
+</div>
+{% endif %}
 <div class="hover">
     <h2 class="path"></h2>
     <div class="description"></div>
