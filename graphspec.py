@@ -30,6 +30,14 @@ NODE_STYLES = {
     "green": 'style="filled"; fillcolor="green"'
 }
 
+STYLE_ALIASES = {
+    "critical": 'color="#6c020d"; style=dashed; penwidth=4',
+    "high": 'color="#d10000"; style=dashed; penwidth=4',
+    "medium": 'color="#f77619"; style=dashed; penwidth=2',
+    "low": 'color="#dae407"; style=dashed',
+    "target": 'shape=doubleoctagon; color="#ef5098"'
+}
+
 def err(l): sys.stderr.write(l + '\n')
 
 # Define a parser to find either directives or edge definitions.
@@ -306,7 +314,15 @@ class Graph(object):
                 dot.append(self.render_node(node_id))
 
         dot.append('}')
-        return '\n'.join(dot)
+
+        for i, line in enumerate(dot):
+            for alias, replacement in STYLE_ALIASES.items():
+                if alias in line:
+                    line = line.replace('!' + alias, replacement)
+            dot[i] = line
+
+        # Grapviz is sensitive to redundant ;s
+        return '\n'.join(dot).replace(";;", ";")
 
     def should_include_node(self, node_id):
         # Only render a node if it has at least one edge going in or out that's _not_ a subgraph relation
