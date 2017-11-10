@@ -474,7 +474,9 @@ def make_graph_from_dot(dot, layout_engine="dot", format='svg', apply_transitive
 
 # We'll prepare a very simple web interface, where a profiles file
 # can define combinations of annotation sources
-app = flask.Flask(__name__, static_url_path='/static/', static_folder="./")
+
+base_path = os.path.dirname(os.path.realpath(__file__)) + '/'
+app = flask.Flask(__name__, static_url_path='/static/', static_folder=base_path, template_folder=base_path + "templates/")
 profiles = {}
 
 def get_lines_from_profile(profile):
@@ -496,8 +498,8 @@ def get_lines_from_profile(profile):
 
 def make_html(svg, graph_data, **kw):
     # We inline this so the output is a standalone file
-    js = open('graphspec.js').read().decode("utf8")
-    css = open('graphspec.css').read().decode("utf8")
+    js = open(base_path + 'graphspec.js').read().decode("utf8")
+    css = open(base_path + 'graphspec.css').read().decode("utf8")
 
     return app.jinja_env.get_template("graph.html").render(svg=svg, js=js, css=css, graph_data=graph_data, **kw).encode("utf8")
 
