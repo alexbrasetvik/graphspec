@@ -494,12 +494,12 @@ def get_lines_from_profile(profile):
         return os.popen(cmd).read().split('\n')
 
 
-def make_html(svg, graph_data):
+def make_html(svg, graph_data, **kw):
     # We inline this so the output is a standalone file
     js = open('graphspec.js').read().decode("utf8")
     css = open('graphspec.css').read().decode("utf8")
 
-    return app.jinja_env.get_template("graph.html").render(svg=svg, js=js, css=css, graph_data=graph_data).encode("utf8")
+    return app.jinja_env.get_template("graph.html").render(svg=svg, js=js, css=css, graph_data=graph_data, **kw).encode("utf8")
 
 
 @app.route('/', methods=['GET'])
@@ -512,22 +512,27 @@ def static_file(path):
     return flask.send_static_file(path)
 
 
-@app.route('/<profile_name>', methods=['GET'])
-def profile(profile_name):
-    profile = profiles.get(profile_name)
-    if not profile:
-        return 'no such profile', 404
-    lines = get_lines_from_profile(profile)
+@app.route('/<profile_names>', methods=['GET'])
+def profile(profile_names):
+    lines = []
+    profile_names = profile_names.split(",")
+    for profile_name in profile_names:
+        profile = profiles.get(profile_name)
+        if not profile:
+            return 'no such profile: "{}"'.format(profile_name), 404
+        lines.extend(get_lines_from_profile(profile))
 
-    include_everything = flask.request.args.get("include_everything", profile.get("include_everything", False))
+    include_everything = flask.request.args.get("include_everything", False)
     graph = Graph.from_lines(lines, include_everything=include_everything)
     graph_data = graph.get_graph_data()
-    apply_transitive_reduction = profile.get("apply_transitive_reduction", flask.request.args.get("apply_transitive_reduction", False))
-    layout_engine = flask.request.args.get("layout_engine", profile.get("layout_engine", "dot"))
+    apply_transitive_reduction = flask.request.args.get("apply_transitive_reduction", False)
+    layout_engine = flask.request.args.get("layout_engine", "dot")
 
     svg = make_graph_from_dot(graph.render_dot().encode("utf8"), layout_engine, "svg", apply_transitive_reduction).decode("utf8")
 
-    return make_html(svg, graph_data)
+    exclude = lambda a, v: [i for i in a if i != v]
+
+    return make_html(svg, graph_data, active_profiles=profile_names, profiles=profiles, exclude=exclude)
 
 
 def main():

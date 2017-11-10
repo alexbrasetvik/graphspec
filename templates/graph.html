@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {% if active_profiles %}
+    <title>
+        {% for profile_name, profile in profiles.items() %}
+            {% if profile_name in active_profiles %}
+                {{ profile.description }}{% if not loop.last %}, {% endif %}
+            {% endif %}
+        {% endfor %}
+    </title>
+    {% endif %}
     <style type="text/css">
         {{ css | safe }}
     </style>
