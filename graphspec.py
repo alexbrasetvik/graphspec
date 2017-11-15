@@ -462,7 +462,7 @@ digraph G {
 
 def make_graph_from_dot(dot, layout_engine="dot", format='svg', apply_transitive_reduction=False):
     assert layout_engine in ("dot", "neato", "fdp"), "Unknown layout engine"
-    dot_args = ['-Gfontname="Open Sans Light"', '-Efontname="Open Sans Light"', '-Nfontname="Open Sans Light"'] + '-Nshape=plaintext -Gpenwidth=1 -Epenwidth=1 -Gcolor=#bbbbbb -Gratio=compress -T{}'.format(format).split()
+    dot_args = ['-Gfontname=Open Sans', '-Efontname=Open Sans Light', '-Nfontname=Open Sans Light'] + '-Nshape=plaintext -Gpenwidth=1 -Epenwidth=1 -Gcolor=#bbbbbb -Gratio=compress -T{}'.format(format).split()
 
     logger.debug("Running [{} {}]".format(layout_engine, ' '.join(dot_args)))
 
