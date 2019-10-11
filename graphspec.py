@@ -489,7 +489,7 @@ profiles = {}
 def get_lines_from_profile(profile):
     if profile.get('shell'):
         # It's some shell command that gets us data
-        return os.popen(profile['shell']).read().split('\n')
+        return os.popen(profile['shell']).read().decode('utf-8').split('\n')
 
     elif profile.get('paths'):
         # A list of paths to provide to ripgrep
@@ -500,7 +500,7 @@ def get_lines_from_profile(profile):
             "--regexp '\.\.(subgraph|attr|allPaths|ancestors|descendants):.*'", # A statement
             "--regexp '([^ ]+) --> ([^ ,]+)' " # A simple edge
         ] + profile['paths']) # And lastly the paths
-        return os.popen(cmd).read().split('\n')
+        return os.popen(cmd).read().decode('utf-8').split('\n')
 
 
 def make_html(svg, graph_data, **kw):
