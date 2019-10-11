@@ -246,7 +246,7 @@ class Graph(object):
         return cls.from_lines(string.split('\n'), **kw)
 
     def render_node(self, node_id):
-        return '"{0}" [id="{0}"; {1}];'.format(node_id, self.node_attrs.get(node_id, ""))
+        return '"{0}" [id="{0}"; {1}];'.format(node_id, self.node_attrs.get(node_id, 'label="{}"'.format(node_id.rsplit(".", 1)[-1])))
 
     def render_dot(self):
         dot = ['digraph G {']
@@ -260,6 +260,13 @@ class Graph(object):
         for a, b, edge_data in self.g.edges(data=True):
             if edge_data.get('is_subgraph_relation'):
                 subgraphs.add_edge(a, b)
+
+                # If the target is a pattern, add a relation to all edges matching that pattern
+                if '*' in b or re.match('^/.*/$', b):
+                    child_pattern = re.compile(b.strip("/") if re.match('^/.*/$', b) else b.replace('.', '[.]').replace('*', '.*'))
+                    for other_node in self.g:
+                        if other_node != a and child_pattern.match(other_node):
+                            self.g.add_edge(a, other_node, is_subgraph_relation=True)
 
         # Each subgraph must be a tree, a subgraph can't be withing two other subgraphs
         if subgraphs and not tree.is_forest(subgraphs):
@@ -440,13 +447,13 @@ digraph G {
     subgraph cluster_first {
         id="first";
         label="First"; style=dashed;
-        "a" [id="a"; ];
+        "a" [id="a"; label="a"];
 
         subgraph cluster_second {
             id="second";
             label="Second"; style=dashed;
-            "b" [id="b"; ];
-            "d" [id="d"; ];
+            "b" [id="b"; label="b"];
+            "d" [id="d"; label="d"];
         }
     }
 
@@ -454,7 +461,7 @@ digraph G {
 "c" -> "d" [id="c/d"]
 "b" -> "c" [id="b/c"; color=red; tooltip="Comment"; label="Label"]
 
-"c" [id="c"; ];
+"c" [id="c"; label="c"];
 }""")
 
         self.assertEquals(graph.render_dot(), expectedDot)
