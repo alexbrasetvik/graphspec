@@ -508,7 +508,7 @@ def make_html(svg, graph_data, **kw):
     js = open(base_path + 'graphspec.js').read().decode("utf8")
     css = open(base_path + 'graphspec.css').read().decode("utf8")
 
-    return app.jinja_env.get_template("graph.html").render(svg=svg, js=js, css=css, graph_data=graph_data, **kw).encode("utf8")
+    return app.jinja_env.get_template("graph.html").render(svg=svg, js=js, css=css, graph_data=graph_data, sorted=sorted, **kw).encode("utf8")
 
 
 @app.route('/', methods=['GET'])

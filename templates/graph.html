@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!--
+{% for node in sorted(graph_data["edges"].keys()) %}
+    - {{ node }}{% endfor %}
+    -->
+
     {% if active_profiles %}
     <title>
         {% for profile_name, profile in profiles.items() %}
